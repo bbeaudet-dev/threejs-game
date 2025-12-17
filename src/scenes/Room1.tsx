@@ -2,12 +2,17 @@ import Room from '../components/room/Room'
 import Door from '../components/walls/Door'
 import Wall from '../components/walls/Wall'
 import { Table, Chair, Bookshelf, PhysicsBox } from '../components/objects'
+import Key from '../components/items/Key'
+import PadlockedChest from '../components/objects/PadlockedChest'
+import { showMessage } from '../components/hud/MessageDisplay'
 import { PLAYER_EYE_HEIGHT } from '../config/PlayerConfig'
 import { useWoodTexture, useCeilingTexture } from '../utils/textures'
 import { useRoom } from '../contexts/RoomContext'
+import { useGameState } from '../contexts/GameStateContext'
 
 function Room1Content() {
   const { roomWidth, roomLength, roomHeight } = useRoom()
+  const { returnToMenu } = useGameState()
 
   return (
     <>
@@ -48,13 +53,15 @@ function Room1Content() {
         position={[roomWidth / 2, 0, -8]} 
         rotation={[0, Math.PI / 2, 0]}
         targetScene="room2"
-        spawnPoint={{ position: [-13, PLAYER_EYE_HEIGHT, -8], rotation: [0, Math.PI, 0] }} 
+        spawnPoint={{ position: [-13, PLAYER_EYE_HEIGHT, -8], rotation: [0, Math.PI, 0] }}
+        requiredKey="room1-key"
       />
       <Door 
         position={[roomWidth / 2, 0, 8]} 
         rotation={[0, Math.PI / 2, 0]}
         targetScene="room2"
-        spawnPoint={{ position: [-13, PLAYER_EYE_HEIGHT, 8], rotation: [0, Math.PI, 0] }} 
+        spawnPoint={{ position: [-13, PLAYER_EYE_HEIGHT, 8], rotation: [0, Math.PI, 0] }}
+        requiredKey="room1-key"
       />
 
       {/* Furniture */}
@@ -65,6 +72,22 @@ function Room1Content() {
       <Table position={[8, 0, 8]} />
       <Chair position={[7, 0, 9]} />
       <Bookshelf position={[12, 0, 12]} />
+      
+      {/* Key hidden behind bookshelf */}
+      <Key position={[-12, 0, -12.5]} itemId="room1-key" name="Room Key" />
+      
+      {/* Padlocked chest */}
+      <PadlockedChest
+        position={[-8, 0, -8]}
+        requiredKey="room3-key"
+        onUnlock={() => {
+          showMessage('Congratulations! You have completed the puzzle!')
+          // Return to main menu after a short delay
+          setTimeout(() => {
+            returnToMenu()
+          }, 3000)
+        }}
+      />
 
       {/* Interactive physics objects */}
       <PhysicsBox position={[3, 1, -3]} color="#FF6B6B" />

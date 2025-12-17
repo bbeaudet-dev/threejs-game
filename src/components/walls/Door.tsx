@@ -1,8 +1,9 @@
-import { useRef, useEffect } from 'react'
+import { useRef, useEffect, useMemo } from 'react'
 import { useFrame, useThree } from '@react-three/fiber'
 import { useInteraction } from '../../systems/InteractionSystem'
 import { useScene, SpawnPoint } from '../../scenes/SceneManager'
 import { useCamera } from '../../contexts/CameraContext'
+import { usePlayer } from '../../contexts/PlayerContext'
 import { registerInteractiveObject, unregisterInteractiveObject } from '../hud/InteractionTooltip'
 import { showMessage } from '../hud/MessageDisplay'
 import * as THREE from 'three'
@@ -12,6 +13,8 @@ interface DoorProps {
   rotation?: [number, number, number]
   targetScene: 'room1' | 'room2' | 'room3'
   spawnPoint: SpawnPoint
+  requiredKey?: string // Item ID required to unlock this door
+  locked?: boolean // Whether door is locked
 }
 
 // Generate unique ID for each door
@@ -22,14 +25,26 @@ export default function Door({
   rotation = [0, 0, 0], 
   targetScene,
   spawnPoint,
+  requiredKey,
+  locked = false,
 }: DoorProps) {
   const { hoveredObject } = useInteraction()
   const { transitionToScene } = useScene()
   const { camera } = useThree()
   const { rotation: cameraRotation } = useCamera()
+  const { attributes } = usePlayer()
   const doorRef = useRef<THREE.Group>(null)
   const doorId = useRef(`door-${doorIdCounter++}`)
   const isRaycastHovered = hoveredObject === doorId.current
+  
+  // Make isLocked reactive to inventory changes by accessing items array directly
+  const isLocked = useMemo(() => {
+    if (locked) return true
+    if (requiredKey) {
+      return !attributes.items.includes(requiredKey)
+    }
+    return false
+  }, [locked, requiredKey, attributes.items])
 
   // Register door as interactive
   useEffect(() => {
@@ -43,27 +58,39 @@ export default function Door({
         }
       })
       
-      // Register with tooltip system
-      registerInteractiveObject(doorId.current, {
-        id: doorId.current,
-        actionText: 'Enter',
-        actionKey: 'E',
-      })
     }
     
     return () => {
       unregisterInteractiveObject(doorId.current)
     }
   }, [])
+  
+  // Update tooltip when lock status changes
+  useEffect(() => {
+    const actionText = isLocked ? 'Locked' : 'Enter'
+    registerInteractiveObject(doorId.current, {
+      id: doorId.current,
+      actionText,
+      actionKey: 'E',
+    })
+  }, [isLocked])
 
   // Handle E key interaction
   useEffect(() => {
     const handleKeyPress = (event: KeyboardEvent) => {
       if (event.code === 'KeyE' && isRaycastHovered) {
-        showMessage(`Entering ${targetScene}...`)
-        // Preserve current rotation when transitioning
-        const currentRot = cameraRotation.current || camera.quaternion.clone()
-        transitionToScene(targetScene, spawnPoint, currentRot)
+        if (isLocked) {
+          if (requiredKey) {
+            showMessage('This door is locked. You need a key.')
+          } else {
+            showMessage('This door is locked.')
+          }
+        } else {
+          showMessage(`Entering ${targetScene}...`)
+          // Preserve current rotation when transitioning
+          const currentRot = cameraRotation.current || camera.quaternion.clone()
+          transitionToScene(targetScene, spawnPoint, currentRot)
+        }
       }
     }
     
@@ -71,7 +98,7 @@ export default function Door({
     return () => {
       document.removeEventListener('keydown', handleKeyPress)
     }
-  }, [isRaycastHovered, targetScene, spawnPoint, transitionToScene, camera, cameraRotation])
+  }, [isRaycastHovered, isLocked, requiredKey, targetScene, spawnPoint, transitionToScene, camera, cameraRotation])
 
   // Hover effect - slight scale
   useFrame(() => {
@@ -98,15 +125,15 @@ export default function Door({
           />
         </mesh>
         
-        {/* Door handle */}
-        <mesh position={[doorWidth / 2 - 0.2, 0, doorDepth / 2 + 0.05]} castShadow>
-          <cylinderGeometry args={[0.03, 0.03, 0.1, 8]} />
+        {/* Door handle - front side */}
+        <mesh position={[doorWidth / 2 - 0.2, -0.2, doorDepth / 2 + 0.05]} rotation={[0, 0, Math.PI / 2]} castShadow>
+          <cylinderGeometry args={[0.02, 0.02, 0.15, 8]} />
           <meshStandardMaterial color="#C0C0C0" />
         </mesh>
         
-        {/* Door handle */}
-        <mesh position={[doorWidth / 2 - 0.2, 0, -doorDepth / 2 - 0.05]} castShadow>
-          <cylinderGeometry args={[0.03, 0.03, 0.1, 8]} />
+        {/* Door handle - back side */}
+        <mesh position={[doorWidth / 2 - 0.2, -0.2, -doorDepth / 2 - 0.05]} rotation={[0, 0, Math.PI / 2]} castShadow>
+          <cylinderGeometry args={[0.02, 0.02, 0.15, 8]} />
           <meshStandardMaterial color="#C0C0C0" />
         </mesh>
       </group>

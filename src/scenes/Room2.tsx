@@ -1,12 +1,16 @@
+import { useState } from 'react'
 import Room from '../components/room/Room'
 import Door from '../components/walls/Door'
 import Wall from '../components/walls/Wall'
+import Computer from '../components/objects/Computer'
+import { Sign } from '../components/objects'
 import { PLAYER_EYE_HEIGHT } from '../config/PlayerConfig'
 import { useWoodTexture, useCeilingTexture } from '../utils/textures'
 import { useRoom } from '../contexts/RoomContext'
 
 function Room2Content() {
   const { roomWidth, roomLength, roomHeight } = useRoom()
+  const [doorToRoom3Unlocked, setDoorToRoom3Unlocked] = useState(false)
 
   return (
     <>
@@ -61,6 +65,23 @@ function Room2Content() {
         rotation={[0, Math.PI / 2, 0]}
         targetScene="room3"
         spawnPoint={{ position: [-6, PLAYER_EYE_HEIGHT, 0], rotation: [0, Math.PI, 0] }}
+        locked={!doorToRoom3Unlocked}
+      />
+      
+      {/* Puzzle sign */}
+      <Sign
+        position={[0, 2, -10]}
+        text={'2 + 2 = ?'}
+      />
+
+      {/* Computer terminal */}
+      <Computer
+        position={[0, 0.5, -8]}
+        question="Enter the answer from the sign:"
+        correctAnswer="4"
+        onCorrect={() => {
+          setDoorToRoom3Unlocked(true)
+        }}
       />
     </>
   )

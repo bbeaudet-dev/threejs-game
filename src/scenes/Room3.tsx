@@ -2,6 +2,7 @@ import Room from '../components/room/Room'
 import Door from '../components/walls/Door'
 import Wall from '../components/walls/Wall'
 import SpeedBoost from '../components/items/SpeedBoost'
+import Key from '../components/items/Key'
 import { PLAYER_EYE_HEIGHT } from '../config/PlayerConfig'
 import { useWoodTexture, useCeilingTexture } from '../utils/textures'
 import { useRoom } from '../contexts/RoomContext'
@@ -52,6 +53,9 @@ function Room3Content() {
 
       {/* Speed boost item */}
       <SpeedBoost position={[3, 1, 3]} />
+      
+      {/* Second key */}
+      <Key position={[-3, 1, 0]} itemId="room3-key" name="Chest Key" />
     </>
   )
 }
