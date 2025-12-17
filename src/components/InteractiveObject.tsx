@@ -1,7 +1,10 @@
 import { useRef, useState, useEffect } from 'react'
 import { useFrame, ThreeEvent } from '@react-three/fiber'
 import { useBox } from '@react-three/cannon'
-import { useInteraction } from './InteractionSystem'
+import { useInteraction } from '../systems/InteractionSystem'
+import { registerInteractiveObject, unregisterInteractiveObject } from './hud/InteractionTooltip'
+import { showMessage } from './hud/MessageDisplay'
+import { InteractionConfig } from '../types/GameTypes'
 import * as THREE from 'three'
 
 interface InteractiveObjectProps {
@@ -10,6 +13,8 @@ interface InteractiveObjectProps {
   name: string
   description: string
   children: React.ReactNode
+  interactionConfig?: InteractionConfig
+  onInteract?: () => void // Custom interaction handler
 }
 
 // Generate unique ID for each interactive object
@@ -21,6 +26,8 @@ export default function InteractiveObject({
   name,
   description,
   children,
+  interactionConfig = { actionText: 'Interact', actionKey: 'E' },
+  onInteract,
 }: InteractiveObjectProps) {
   const { hoveredObject } = useInteraction()
   const [clicked, setClicked] = useState(false)
@@ -41,13 +48,29 @@ export default function InteractiveObject({
     },
   }))
 
-  // Register this object as interactive
+  // Register this object as interactive and solid (for collision)
   useEffect(() => {
     if (meshRef.current) {
       meshRef.current.userData.isInteractive = true
+      meshRef.current.userData.isSolid = true // Mark as solid for collision detection
       meshRef.current.userData.interactiveId = interactiveId.current
+      // Set interaction distance if specified
+      if (interactionConfig.distance) {
+        meshRef.current.userData.interactionDistance = interactionConfig.distance
+      }
     }
-  }, [])
+    
+    // Register with tooltip system
+    registerInteractiveObject(interactiveId.current, {
+      id: interactiveId.current,
+      actionText: interactionConfig.actionText,
+      actionKey: interactionConfig.actionKey || 'E',
+    })
+    
+    return () => {
+      unregisterInteractiveObject(interactiveId.current)
+    }
+  }, [interactionConfig])
 
   // Handle E key interaction
   useEffect(() => {
@@ -64,14 +87,23 @@ export default function InteractiveObject({
   }, [isRaycastHovered])
 
   const handleInteract = () => {
-    setClicked(!clicked)
-    
-    // Apply a small impulse when interacted with
-    api.applyImpulse([0, 2, 0], [0, 0, 0])
-    
-    // Log interaction
-    console.log(`Interacted with: ${name}`)
-    console.log(`Description: ${description}`)
+    if (onInteract) {
+      // Use custom handler if provided
+      onInteract()
+    } else {
+      // Default behavior
+      setClicked(!clicked)
+      
+      // Apply a small impulse when interacted with
+      api.applyImpulse([0, 2, 0], [0, 0, 0])
+      
+      // Show message
+      showMessage(`${name}: ${description}`)
+      
+      // Log interaction
+      console.log(`Interacted with: ${name}`)
+      console.log(`Description: ${description}`)
+    }
   }
 
   // Hover effect - slight scale and glow (based on raycast hover)
