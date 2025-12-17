@@ -88,7 +88,7 @@ export default function Player() {
     velocity.current.z -= velocity.current.z * 10.0 * delta
     
     direction.current.z = Number(moveForward.current) - Number(moveBackward.current)
-    direction.current.x = Number(moveRight.current) - Number(moveLeft.current)
+    direction.current.x = Number(moveLeft.current) - Number(moveRight.current)
     direction.current.normalize()
     
     if (moveForward.current || moveBackward.current) {
@@ -108,8 +108,8 @@ export default function Player() {
     // Keep player at eye level
     camera.position.y = 1.6
     
-    // Simple boundary check (keep player in room)
-    const ROOM_BOUNDARY = 4.5
+    // Simple boundary check (keep player in room) 
+    const ROOM_BOUNDARY = 14.5
     camera.position.x = Math.max(-ROOM_BOUNDARY, Math.min(ROOM_BOUNDARY, camera.position.x))
     camera.position.z = Math.max(-ROOM_BOUNDARY, Math.min(ROOM_BOUNDARY, camera.position.z))
   })
