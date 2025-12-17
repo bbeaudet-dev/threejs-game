@@ -1,12 +1,16 @@
 import { useRef, useEffect } from 'react'
 import { useFrame, useThree } from '@react-three/fiber'
+import { useInteraction } from './InteractionSystem'
 import * as THREE from 'three'
 
-const MOVE_SPEED = 5
+const MOVE_SPEED = 1
 const LOOK_SENSITIVITY = 0.002
+const INTERACTION_DISTANCE = 5 // Maximum distance for interactions
+const RAYCASTER_INTERVAL = 100 // Check for interactions every 100ms
 
 export default function Player() {
-  const { camera } = useThree()
+  const { camera, scene } = useThree()
+  const { setHoveredObject } = useInteraction()
   const moveForward = useRef(false)
   const moveBackward = useRef(false)
   const moveLeft = useRef(false)
@@ -15,6 +19,8 @@ export default function Player() {
   const velocity = useRef(new THREE.Vector3())
   const direction = useRef(new THREE.Vector3())
   const euler = useRef(new THREE.Euler(0, 0, 0, 'YXZ'))
+  const raycaster = useRef(new THREE.Raycaster())
+  const lastRaycastTime = useRef(0)
   
   // Lock pointer on mount
   useEffect(() => {
@@ -112,6 +118,35 @@ export default function Player() {
     const ROOM_BOUNDARY = 14.5
     camera.position.x = Math.max(-ROOM_BOUNDARY, Math.min(ROOM_BOUNDARY, camera.position.x))
     camera.position.z = Math.max(-ROOM_BOUNDARY, Math.min(ROOM_BOUNDARY, camera.position.z))
+    
+    // Raycast for interactions (throttled)
+    const now = Date.now()
+    if (now - lastRaycastTime.current > RAYCASTER_INTERVAL) {
+      lastRaycastTime.current = now
+      
+      // Cast ray from camera forward
+      raycaster.current.setFromCamera(new THREE.Vector2(0, 0), camera)
+      const intersects = raycaster.current.intersectObjects(scene.children, true)
+      
+      // Find first interactive object within range
+      let foundInteractive = false
+      for (const intersect of intersects) {
+        const distance = intersect.distance
+        if (distance > INTERACTION_DISTANCE) break
+        
+        // Check if object has interactive data
+        const object = intersect.object
+        if (object.userData.isInteractive && object.userData.interactiveId) {
+          setHoveredObject(object.userData.interactiveId)
+          foundInteractive = true
+          break
+        }
+      }
+      
+      if (!foundInteractive) {
+        setHoveredObject(null)
+      }
+    }
   })
   
   return null

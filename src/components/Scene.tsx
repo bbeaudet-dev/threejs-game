@@ -1,6 +1,6 @@
 import { Canvas } from '@react-three/fiber'
 import { PerspectiveCamera } from '@react-three/drei'
-import { Physics } from '@react-three/cannon'
+import { Physics, usePlane } from '@react-three/cannon'
 import { Suspense } from 'react'
 import Player from './Player'
 import InteractiveObject from './InteractiveObject'
@@ -10,7 +10,20 @@ import * as THREE from 'three'
 const ROOM_SIZE = 30
 const WALL_HEIGHT = 8
 
-// Floor component with texture
+// Physics floor collider (invisible, for collisions)
+function PhysicsFloor() {
+  // Static plane at y = 0
+  const [ref] = usePlane(() => ({
+    rotation: [-Math.PI / 2, 0, 0],
+    position: [0, 0, 0],
+  }))
+
+  return (
+    <mesh ref={ref as React.MutableRefObject<THREE.Mesh | null>} />
+  )
+}
+
+// Visual floor component with texture
 function Floor() {
   // Create a simple procedural texture
   const texture = new THREE.CanvasTexture(
@@ -279,6 +292,7 @@ function Scene() {
           <pointLight position={[-10, 8, -10]} intensity={0.5} />
 
           {/* Room */}
+          <PhysicsFloor />
           <Floor />
           <Ceiling />
           <Wall position={[0, WALL_HEIGHT / 2, -ROOM_SIZE / 2]} />

@@ -1,6 +1,7 @@
-import { useRef, useState } from 'react'
+import { useRef, useState, useEffect } from 'react'
 import { useFrame, ThreeEvent } from '@react-three/fiber'
 import { useBox } from '@react-three/cannon'
+import { useInteraction } from './InteractionSystem'
 import * as THREE from 'three'
 
 interface InteractiveObjectProps {
@@ -11,6 +12,9 @@ interface InteractiveObjectProps {
   children: React.ReactNode
 }
 
+// Generate unique ID for each interactive object
+let interactiveIdCounter = 0
+
 export default function InteractiveObject({
   position,
   color,
@@ -18,9 +22,13 @@ export default function InteractiveObject({
   description,
   children,
 }: InteractiveObjectProps) {
-  const [hovered, setHovered] = useState(false)
+  const { hoveredObject } = useInteraction()
   const [clicked, setClicked] = useState(false)
   const meshRef = useRef<THREE.Mesh | null>(null)
+  const interactiveId = useRef(`interactive-${interactiveIdCounter++}`)
+  
+  // Check if this object is being hovered via raycast
+  const isRaycastHovered = hoveredObject === interactiveId.current
 
   // Physics body
   const [physicsRef, api] = useBox(() => ({
@@ -33,19 +41,32 @@ export default function InteractiveObject({
     },
   }))
 
-  // Hover effect - slight scale and glow
-  useFrame(() => {
+  // Register this object as interactive
+  useEffect(() => {
     if (meshRef.current) {
-      const targetScale = hovered ? 1.1 : 1.0
-      meshRef.current.scale.lerp(new THREE.Vector3(targetScale, targetScale, targetScale), 0.1)
+      meshRef.current.userData.isInteractive = true
+      meshRef.current.userData.interactiveId = interactiveId.current
     }
-  })
+  }, [])
 
-  const handleClick = (e: ThreeEvent<MouseEvent>) => {
-    e.stopPropagation()
+  // Handle E key interaction
+  useEffect(() => {
+    const handleKeyPress = (event: KeyboardEvent) => {
+      if (event.code === 'KeyE' && isRaycastHovered) {
+        handleInteract()
+      }
+    }
+    
+    document.addEventListener('keydown', handleKeyPress)
+    return () => {
+      document.removeEventListener('keydown', handleKeyPress)
+    }
+  }, [isRaycastHovered])
+
+  const handleInteract = () => {
     setClicked(!clicked)
     
-    // Apply a small impulse when clicked
+    // Apply a small impulse when interacted with
     api.applyImpulse([0, 2, 0], [0, 0, 0])
     
     // Log interaction
@@ -53,19 +74,17 @@ export default function InteractiveObject({
     console.log(`Description: ${description}`)
   }
 
-  const handlePointerOver = (e: ThreeEvent<PointerEvent>) => {
-    e.stopPropagation()
-    setHovered(true)
-    if (document.body) {
-      document.body.style.cursor = 'pointer'
+  // Hover effect - slight scale and glow (based on raycast hover)
+  useFrame(() => {
+    if (meshRef.current) {
+      const targetScale = isRaycastHovered ? 1.1 : 1.0
+      meshRef.current.scale.lerp(new THREE.Vector3(targetScale, targetScale, targetScale), 0.1)
     }
-  }
+  })
 
-  const handlePointerOut = () => {
-    setHovered(false)
-    if (document.body) {
-      document.body.style.cursor = 'default'
-    }
+  const handleClick = (e: ThreeEvent<MouseEvent>) => {
+    e.stopPropagation()
+    handleInteract()
   }
 
   return (
@@ -79,17 +98,15 @@ export default function InteractiveObject({
         }
       }}
       onClick={handleClick}
-      onPointerOver={handlePointerOver}
-      onPointerOut={handlePointerOut}
       castShadow
       receiveShadow
     >
       {children}
-      {/* Material with hover effect */}
+      {/* Material with hover effect (based on raycast) */}
       <meshStandardMaterial
         color={color}
-        emissive={hovered ? color : '#000000'}
-        emissiveIntensity={hovered ? 0.3 : 0}
+        emissive={isRaycastHovered ? color : '#000000'}
+        emissiveIntensity={isRaycastHovered ? 0.3 : 0}
       />
     </mesh>
   )
