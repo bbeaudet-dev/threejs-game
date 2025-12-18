@@ -4,6 +4,8 @@ import { useInteraction } from '../../systems/InteractionSystem'
 import { usePlayer } from '../../contexts/PlayerContext'
 import { useCamera } from '../../contexts/CameraContext'
 import { useRoom } from '../../contexts/RoomContext'
+import { useScene } from '../../scenes/SceneManager'
+import { ROOM3_PLANETS } from '../../config/Room3Config'
 import {
   GROUND_LEVEL,
   getCeilingLevel,
@@ -13,6 +15,7 @@ import * as THREE from 'three'
 
 const LOOK_SENSITIVITY = 0.002
 const RAYCASTER_INTERVAL = 100 // How often to check for interactive objects (in milliseconds)
+const PLANET_GRAVITY_SCALE = 3.5 // Multiplier for planetary gravity strength in Room 3
 
 export default function Player() {
   const { camera, scene } = useThree()
@@ -20,6 +23,7 @@ export default function Player() {
   const { getEffectiveMoveSpeed, getEffectiveInteractionDistance, getEffectiveJumpHeight } = usePlayer()
   const { setYaw, setHeight, rotation } = useCamera()
   const { roomHeight: roomHeightFromContext } = useRoom()
+  const { currentScene } = useScene()
   
   const moveForward = useRef(false)
   const moveBackward = useRef(false)
@@ -96,11 +100,22 @@ export default function Player() {
     setHeight(camera.position.y)
     rotation.current = camera.quaternion.clone()
     
-    const GRAVITY = -9.81
+    const baseGravity = currentScene === 'room3' ? -2.5 : -9.81
     const CEILING_LEVEL = getCeilingLevel(roomHeightFromContext)
     
     if (!isGrounded.current) {
-      velocity.current.y += GRAVITY * delta
+      velocity.current.y += baseGravity * delta
+    }
+
+    // Additional per-planet gravity in Room 3
+    if (currentScene === 'room3') {
+      for (const planet of ROOM3_PLANETS) {
+        const dir = planet.position.clone().sub(camera.position)
+        const distSq = Math.max(dir.lengthSq(), 1)
+        const strength = ((planet.mass || 1) * PLANET_GRAVITY_SCALE) / distSq
+        dir.normalize().multiplyScalar(strength)
+        velocity.current.add(dir.multiplyScalar(delta))
+      }
     }
     
     // Check if grounded

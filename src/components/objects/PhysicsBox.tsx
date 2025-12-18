@@ -20,8 +20,9 @@ export default function PhysicsBox({
       physics={true}
       physicsArgs={[0.8, 0.8, 0.8]}
       name="Movable Box"
-      description="You can push this box around!"
+      description=""
       interactionConfig={interactionConfig}
+      onInteract={() => {}} 
     >
       <mesh castShadow receiveShadow>
         <boxGeometry args={[0.8, 0.8, 0.8]} />

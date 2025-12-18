@@ -3,6 +3,7 @@ import DebugHUD from './DebugHUD'
 import InteractionTooltip from './InteractionTooltip'
 import MessageDisplay from './MessageDisplay'
 import Compass from './Compass'
+import Inventory from './Inventory'
 import { useInteraction } from '../../systems/InteractionSystem'
 
 export default function HUD() {
@@ -15,7 +16,7 @@ export default function HUD() {
       <InteractionTooltip />
       <MessageDisplay />
       <DebugHUD />
-      {/* Future: Add inventory, health bar, etc. here */}
+      <Inventory />
     </>
   )
 }

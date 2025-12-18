@@ -103,6 +103,9 @@ export default function Object({
       
       groupRef.current.traverse((child) => {
         if (child instanceof THREE.Mesh) {
+          if (child.visible === false) {
+            return
+          }
           if (isSolid) {
             child.userData.isSolid = true
           }
