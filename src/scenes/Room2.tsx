@@ -1,4 +1,3 @@
-import { useState } from 'react'
 import Room from '../components/room/Room'
 import Door from '../components/walls/Door'
 import Wall from '../components/walls/Wall'
@@ -10,11 +9,10 @@ import { useRoom } from '../contexts/RoomContext'
 
 function Room2Content() {
   const { roomWidth, roomLength, roomHeight } = useRoom()
-  const [doorToRoom3Unlocked, setDoorToRoom3Unlocked] = useState(false)
 
   return (
     <>
-      {/* Walls */}
+      {/* Tiny broom-closet walls */}
       <Wall 
         position={[0, 0, -roomLength / 2]} 
         wallHeight={roomHeight}
@@ -27,6 +25,8 @@ function Room2Content() {
         wallLength={roomWidth}
         textureColor="#A8C5A0"
       />
+
+      {/* Left wall with a single door back to Room 1 */}
       <Wall
         position={[-roomWidth / 2, 0, 0]}
         rotation={[0, -Math.PI / 2, 0]}
@@ -34,54 +34,38 @@ function Room2Content() {
         wallLength={roomLength}
         textureColor="#A8C5A0"
         openings={[
-          { type: 'door', position: -8, width: 2, height: 3 },
-          { type: 'door', position: 8, width: 2, height: 3 },
+          { type: 'door', position: 0, width: 2, height: 3 },
         ]}
       />
+
+      {/* Door back to Room 1 (center of the left wall) */}
+      <Door 
+        position={[-roomWidth / 2, 0, 0]} 
+        rotation={[0, -Math.PI / 2, 0]}
+        targetScene="room1"
+        spawnPoint={{ position: [13, PLAYER_EYE_HEIGHT, 8], rotation: [0, 0, 0] }}
+      />
+
+      {/* Right outer wall (no door to Room 3 anymore) */}
       <Wall
         position={[roomWidth / 2, 0, 0]}
         rotation={[0, Math.PI / 2, 0]}
         wallHeight={roomHeight}
         wallLength={roomLength}
         textureColor="#A8C5A0"
-        openings={[
-          { type: 'door', position: 0, width: 2, height: 3 },
-        ]}
-      />
-      <Door 
-        position={[-roomWidth / 2, 0, -8]} 
-        rotation={[0, -Math.PI / 2, 0]}
-        targetScene="room1"
-        spawnPoint={{ position: [13, PLAYER_EYE_HEIGHT, -8], rotation: [0, 0, 0] }} 
-      />
-      <Door 
-        position={[-roomWidth / 2, 0, 8]} 
-        rotation={[0, -Math.PI / 2, 0]}
-        targetScene="room1"
-        spawnPoint={{ position: [13, PLAYER_EYE_HEIGHT, 8], rotation: [0, 0, 0] }}
-      />
-      <Door 
-        position={[roomWidth / 2, 0, 0]} 
-        rotation={[0, Math.PI / 2, 0]}
-        targetScene="room3"
-        spawnPoint={{ position: [-6, PLAYER_EYE_HEIGHT, 0], rotation: [0, Math.PI, 0] }}
-        locked={!doorToRoom3Unlocked}
       />
       
-      {/* Puzzle sign */}
+      {/* Puzzle sign in small broom-closet Room 2 */}
       <Sign
-        position={[0, 2, -10]}
+        position={[0, 2, -2]}
         text={'2 + 2 = ?'}
       />
 
-      {/* Computer terminal */}
+      {/* Computer terminal next to sign */}
       <Computer
-        position={[0, 0.5, -8]}
+        position={[0, 0.5, 0]}
         question="Enter the answer from the sign:"
         correctAnswer="4"
-        onCorrect={() => {
-          setDoorToRoom3Unlocked(true)
-        }}
       />
     </>
   )
@@ -90,9 +74,9 @@ function Room2Content() {
 export default function Room2() {
   return (
     <Room
-      roomWidth={30}
-      roomLength={30}
-      roomHeight={8}
+      roomWidth={10}
+      roomLength={10}
+      roomHeight={6}
       floorTexture={useWoodTexture('#6B8E5A')}
       ceilingTexture={useCeilingTexture('#C8D5C0')}
     >

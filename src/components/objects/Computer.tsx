@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react'
 import Object from './Object'
 import { showMessage } from '../hud/MessageDisplay'
 import NumericInput from '../hud/NumericInput'
+import { usePlayer } from '../../contexts/PlayerContext'
 
 interface ComputerProps {
   position: [number, number, number]
@@ -17,6 +18,7 @@ export default function Computer({
   onCorrect 
 }: ComputerProps) {
   const [isActive, setIsActive] = useState(false)
+  const { addItem } = usePlayer()
 
   const handleInteract = () => {
     setIsActive(true)
@@ -25,7 +27,8 @@ export default function Computer({
 
   const handleSubmitAnswer = (answer: string) => {
     if (answer.toLowerCase().trim() === correctAnswer.toLowerCase().trim()) {
-      showMessage('Correct!')
+      showMessage('You hear a click somewhere.')
+      addItem('room3-door-key')
       setIsActive(false)
       if (onCorrect) {
         onCorrect()

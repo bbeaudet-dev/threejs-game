@@ -1,8 +1,13 @@
 import Object from './Object'
 
-export default function Chair({ position }: { position: [number, number, number] }) {
+interface ChairProps {
+  position: [number, number, number]
+  rotation?: [number, number, number]
+}
+
+export default function Chair({ position, rotation = [0, 0, 0] }: ChairProps) {
   return (
-    <Object position={position}>
+    <Object position={position} rotation={rotation}>
       {/* Seat */}
       <mesh position={[0, 0.4, 0]} castShadow receiveShadow>
         <boxGeometry args={[0.6, 0.1, 0.6]} />

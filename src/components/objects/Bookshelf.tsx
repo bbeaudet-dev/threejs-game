@@ -1,8 +1,13 @@
 import Object from './Object'
 
-export default function Bookshelf({ position }: { position: [number, number, number] }) {
+interface BookshelfProps {
+  position: [number, number, number]
+  rotation?: [number, number, number]
+}
+
+export default function Bookshelf({ position, rotation = [0, 0, 0] }: BookshelfProps) {
   return (
-    <Object position={position}>
+    <Object position={position} rotation={rotation}>
       {/* Main structure */}
       <mesh position={[0, 1.5, 0]} castShadow receiveShadow>
         <boxGeometry args={[1.5, 3, 0.3]} />

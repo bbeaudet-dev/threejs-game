@@ -15,6 +15,7 @@ interface DoorProps {
   spawnPoint: SpawnPoint
   requiredKey?: string // Item ID required to unlock this door
   locked?: boolean // Whether door is locked
+  variant?: 'default' | 'room3' // Visual style variant
 }
 
 // Generate unique ID for each door
@@ -27,6 +28,7 @@ export default function Door({
   spawnPoint,
   requiredKey,
   locked = false,
+  variant = 'default',
 }: DoorProps) {
   const { hoveredObject } = useInteraction()
   const { transitionToScene } = useScene()
@@ -67,7 +69,10 @@ export default function Door({
   
   // Update tooltip when lock status changes
   useEffect(() => {
-    const actionText = isLocked ? 'Locked' : 'Enter'
+    const isRoom3Door = variant === 'room3'
+    const actionText = isLocked
+      ? isRoom3Door ? 'Sealed' : 'Locked'
+      : 'Enter'
     registerInteractiveObject(doorId.current, {
       id: doorId.current,
       actionText,
@@ -80,8 +85,10 @@ export default function Door({
     const handleKeyPress = (event: KeyboardEvent) => {
       if (event.code === 'KeyE' && isRaycastHovered) {
         if (isLocked) {
-          if (requiredKey) {
-            showMessage('This door is locked. You need a key.')
+          if (variant === 'room3') {
+            showMessage('The door is sealed tight.')
+          } else if (requiredKey) {
+            showMessage('This door is locked.')
           } else {
             showMessage('This door is locked.')
           }
@@ -119,23 +126,50 @@ export default function Door({
         <mesh castShadow receiveShadow>
           <boxGeometry args={[doorWidth, doorHeight, doorDepth]} />
           <meshStandardMaterial 
-            color={isRaycastHovered ? "#6B8E5A" : "#5A4A3A"}
-            emissive={isRaycastHovered ? "#4A6B3A" : "#000000"}
-            emissiveIntensity={isRaycastHovered ? 0.2 : 0}
+            color={
+              variant === 'room3'
+                ? (isLocked ? '#3B3B7A' : '#5B5BB0')
+                : (isRaycastHovered ? '#6B8E5A' : '#5A4A3A')
+            }
+            emissive={
+              variant === 'room3'
+                ? (isLocked ? '#000022' : '#222266')
+                : (isRaycastHovered ? '#4A6B3A' : '#000000')
+            }
+            emissiveIntensity={
+              variant === 'room3'
+                ? (isLocked ? 0.4 : 0.6)
+                : (isRaycastHovered ? 0.2 : 0)
+            }
           />
         </mesh>
         
-        {/* Door handle - front side */}
-        <mesh position={[doorWidth / 2 - 0.2, -0.2, doorDepth / 2 + 0.05]} rotation={[0, 0, Math.PI / 2]} castShadow>
-          <cylinderGeometry args={[0.02, 0.02, 0.15, 8]} />
-          <meshStandardMaterial color="#C0C0C0" />
-        </mesh>
-        
-        {/* Door handle - back side */}
-        <mesh position={[doorWidth / 2 - 0.2, -0.2, -doorDepth / 2 - 0.05]} rotation={[0, 0, Math.PI / 2]} castShadow>
-          <cylinderGeometry args={[0.02, 0.02, 0.15, 8]} />
-          <meshStandardMaterial color="#C0C0C0" />
-        </mesh>
+        {variant === 'room3' ? (
+          <>
+            {/* Room 3 door: glowing glyph instead of a normal handle */}
+            <mesh position={[doorWidth / 2 - 0.3, 0, doorDepth / 2 + 0.06]} castShadow>
+              <torusGeometry args={[0.18, 0.04, 16, 32]} />
+              <meshStandardMaterial color="#74C0FC" emissive="#74C0FC" emissiveIntensity={0.8} />
+            </mesh>
+            <mesh position={[doorWidth / 2 - 0.3, 0, -doorDepth / 2 - 0.06]} castShadow>
+              <torusGeometry args={[0.18, 0.04, 16, 32]} />
+              <meshStandardMaterial color="#74C0FC" emissive="#74C0FC" emissiveIntensity={0.4} />
+            </mesh>
+          </>
+        ) : (
+          <>
+            {/* Door handle - front side */}
+            <mesh position={[doorWidth / 2 - 0.2, -0.2, doorDepth / 2 + 0.05]} rotation={[0, 0, Math.PI / 2]} castShadow>
+              <cylinderGeometry args={[0.02, 0.02, 0.15, 8]} />
+              <meshStandardMaterial color="#C0C0C0" />
+            </mesh>
+            {/* Door handle - back side */}
+            <mesh position={[doorWidth / 2 - 0.2, -0.2, -doorDepth / 2 - 0.05]} rotation={[0, 0, Math.PI / 2]} castShadow>
+              <cylinderGeometry args={[0.02, 0.02, 0.15, 8]} />
+              <meshStandardMaterial color="#C0C0C0" />
+            </mesh>
+          </>
+        )}
       </group>
     </group>
   )
