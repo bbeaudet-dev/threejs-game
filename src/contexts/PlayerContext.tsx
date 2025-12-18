@@ -7,6 +7,7 @@ interface PlayerContextType {
   setMoveSpeedMultiplier: (multiplier: number) => void
   setInteractionDistance: (distance: InteractionDistance) => void
   addItem: (itemId: string) => void
+  removeItem: (itemId: string) => void
   hasItem: (itemId: string) => boolean
   getEffectiveMoveSpeed: () => number
   getEffectiveJumpHeight: () => number
@@ -51,6 +52,13 @@ export function PlayerProvider({ children }: { children: ReactNode }) {
     }))
   }
 
+  const removeItem = (itemId: string) => {
+    setAttributes(prev => ({
+      ...prev,
+      items: prev.items.filter(id => id !== itemId),
+    }))
+  }
+
   const hasItem = (itemId: string) => {
     return attributes.items.includes(itemId)
   }
@@ -85,6 +93,7 @@ export function PlayerProvider({ children }: { children: ReactNode }) {
       setMoveSpeedMultiplier,
       setInteractionDistance,
       addItem,
+      removeItem,
       hasItem,
       getEffectiveMoveSpeed,
       getEffectiveJumpHeight,

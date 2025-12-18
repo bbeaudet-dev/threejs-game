@@ -10,6 +10,7 @@ import {
   GROUND_LEVEL,
   getCeilingLevel,
   COLLISION_BUFFER,
+  PLAYER_EYE_HEIGHT,
 } from '../../config/PlayerConfig'
 import * as THREE from 'three'
 
@@ -21,7 +22,7 @@ export default function Player() {
   const { camera, scene } = useThree()
   const { setHoveredObject } = useInteraction()
   const { getEffectiveMoveSpeed, getEffectiveInteractionDistance, getEffectiveJumpHeight } = usePlayer()
-  const { setYaw, setHeight, rotation } = useCamera()
+  const { setYaw, rotation } = useCamera()
   const { roomHeight: roomHeightFromContext } = useRoom()
   const { currentScene } = useScene()
   
@@ -29,6 +30,7 @@ export default function Player() {
   const moveBackward = useRef(false)
   const moveLeft = useRef(false)
   const moveRight = useRef(false)
+  const isCrouching = useRef(false)
   const canJump = useRef(true)
   
   const velocity = useRef(new THREE.Vector3())
@@ -63,6 +65,11 @@ export default function Player() {
         case 'KeyS': moveBackward.current = true; break
         case 'KeyA': moveLeft.current = true; break
         case 'KeyD': moveRight.current = true; break
+        case 'ControlLeft':
+        case 'ControlRight':
+        case 'KeyC':
+          isCrouching.current = true
+          break
         case 'Space':
           if (isGrounded.current && canJump.current) {
             velocity.current.y = getEffectiveJumpHeight()
@@ -79,6 +86,11 @@ export default function Player() {
         case 'KeyS': moveBackward.current = false; break
         case 'KeyA': moveLeft.current = false; break
         case 'KeyD': moveRight.current = false; break
+        case 'ControlLeft':
+        case 'ControlRight':
+        case 'KeyC':
+          isCrouching.current = false
+          break
         case 'Space': canJump.current = true; break
       }
     }
@@ -97,18 +109,18 @@ export default function Player() {
   useFrame((_state, delta) => {
     euler.current.setFromQuaternion(camera.quaternion)
     setYaw(euler.current.y)
-    setHeight(camera.position.y)
     rotation.current = camera.quaternion.clone()
     
+    const isBasement = roomHeightFromContext <= 5
     const baseGravity = currentScene === 'room3' ? -2.5 : -9.81
     const CEILING_LEVEL = getCeilingLevel(roomHeightFromContext)
     
-    if (!isGrounded.current) {
+    if (!isBasement && !isGrounded.current) {
       velocity.current.y += baseGravity * delta
     }
 
-    // Additional per-planet gravity in Room 3
-    if (currentScene === 'room3') {
+    // Additional per-planet gravity in Room 3 (only when not in basement)
+    if (!isBasement && currentScene === 'room3') {
       for (const planet of ROOM3_PLANETS) {
         const dir = planet.position.clone().sub(camera.position)
         const distSq = Math.max(dir.lengthSq(), 1)
@@ -118,11 +130,20 @@ export default function Player() {
       }
     }
     
-    // Check if grounded
-    if (camera.position.y <= GROUND_LEVEL && velocity.current.y <= 0) {
-      camera.position.y = GROUND_LEVEL
+    if (isBasement) {
+      // Keep player grounded in basement scenes (like EscapeRoom1), but allow crouch
+      const baseEyeHeight = PLAYER_EYE_HEIGHT
+      const crouchOffset = isCrouching.current ? -1.4 : 0
+      camera.position.y = baseEyeHeight + crouchOffset
       velocity.current.y = 0
       isGrounded.current = true
+    } else {
+      // Check if grounded
+      if (camera.position.y <= GROUND_LEVEL && velocity.current.y <= 0) {
+        camera.position.y = GROUND_LEVEL
+        velocity.current.y = 0
+        isGrounded.current = true
+      }
     }
     
     // Check if hitting ceiling
@@ -194,17 +215,18 @@ export default function Player() {
       camera.position.y += velocity.current.y * delta
     }
     
-    // Ensure player doesn't go below ground
-    if (camera.position.y < GROUND_LEVEL) {
-      camera.position.y = GROUND_LEVEL
-      velocity.current.y = 0
-      isGrounded.current = true
-    }
-    
-    // Ensure player doesn't go above ceiling 
-    if (camera.position.y > CEILING_LEVEL) {
-      camera.position.y = CEILING_LEVEL
-      velocity.current.y = 0
+    // Ensure player doesn't go below ground / above ceiling in non-basement rooms
+    if (!isBasement) {
+      if (camera.position.y < GROUND_LEVEL) {
+        camera.position.y = GROUND_LEVEL
+        velocity.current.y = 0
+        isGrounded.current = true
+      }
+      
+      if (camera.position.y > CEILING_LEVEL) {
+        camera.position.y = CEILING_LEVEL
+        velocity.current.y = 0
+      }
     }
     
     // Raycast for interactions (throttled)

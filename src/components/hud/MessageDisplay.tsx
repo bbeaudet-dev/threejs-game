@@ -4,17 +4,19 @@ interface Message {
   id: string
   text: string
   duration?: number
+  type?: 'default' | 'success'
 }
 
 let messageIdCounter = 0
 const messageQueue: Message[] = []
 let messageListeners: Set<(messages: Message[]) => void> = new Set()
 
-export function showMessage(text: string, duration: number = 3000) {
+export function showMessage(text: string, duration: number = 3000, type: 'default' | 'success' = 'default') {
   const message: Message = {
     id: `msg-${messageIdCounter++}`,
     text,
     duration,
+    type,
   }
   messageQueue.push(message)
   messageListeners.forEach(listener => listener([...messageQueue]))
@@ -56,7 +58,7 @@ export default function MessageDisplay() {
     alignItems: 'center',
   }
 
-  const messageStyle: React.CSSProperties = {
+  const baseMessageStyle: React.CSSProperties = {
     backgroundColor: 'rgba(0, 0, 0, 0.8)',
     color: '#fff',
     padding: '12px 20px',
@@ -70,11 +72,21 @@ export default function MessageDisplay() {
 
   return (
     <div style={containerStyle}>
-      {messages.map(message => (
-        <div key={message.id} style={messageStyle}>
-          {message.text}
-        </div>
-      ))}
+      {messages.map(message => {
+        const style =
+          message.type === 'success'
+            ? {
+                ...baseMessageStyle,
+                backgroundColor: 'rgba(0, 80, 0, 0.9)',
+                border: '2px solid #00FF88',
+              }
+            : baseMessageStyle
+        return (
+          <div key={message.id} style={style}>
+            {message.text}
+          </div>
+        )
+      })}
     </div>
   )
 }

@@ -8,9 +8,10 @@ import MainMenu from './components/menu/MainMenu'
 import Room1 from './scenes/Room1'
 import Room2 from './scenes/Room2'
 import Room3 from './scenes/Room3'
+import EscapeRoom1 from './scenes/EscapeRoom1'
 import './App.css'
 
-function GameApp() {
+function GameScenes() {
   const { state } = useGameState()
   const { currentScene } = useScene()
 
@@ -18,14 +19,27 @@ function GameApp() {
     return <MainMenu />
   }
 
-  return (
-    <div className="app">
-      {currentScene === 'room1' && <Room1 />}
-      {currentScene === 'room2' && <Room2 />}
-      {currentScene === 'room3' && <Room3 />}
-      <HUD />
-    </div>
-  )
+  if (state === 'puzzle1') {
+    return (
+      <div className="app">
+        {currentScene === 'room1' && <Room1 />}
+        {currentScene === 'room2' && <Room2 />}
+        {currentScene === 'room3' && <Room3 />}
+        <HUD />
+      </div>
+    )
+  }
+
+  if (state === 'escape1') {
+    return (
+      <div className="app">
+        <EscapeRoom1 />
+        <HUD />
+      </div>
+    )
+  }
+
+  return null
 }
 
 function App() {
@@ -35,7 +49,7 @@ function App() {
         <PlayerProvider>
           <CameraProvider>
             <InteractionProvider>
-              <GameApp />
+              <GameScenes />
             </InteractionProvider>
           </CameraProvider>
         </PlayerProvider>
