@@ -1,12 +1,12 @@
 import { useEffect, useState } from 'react'
 import { useThree } from '@react-three/fiber'
-import Room from '../components/room/Room'
-import Wall from '../components/walls/Wall'
-import { Table, Bookshelf, PhysicsBox, Lever, BreakerBox } from '../components/objects'
+import Scene from '../components/Scene'
+import Wall from '../components/room/Wall'
+import { Table, Bookshelf, PhysicsBox, BreakerBox } from '../components/objects'
 import Fuse from '../components/items/Fuse'
 import EmergencyLight from '../components/objects/EmergencyLight'
 import { useWoodTexture, useCeilingTexture, useCobblestoneTexture } from '../utils/textures'
-import { useRoom } from '../contexts/RoomContext'
+import { useScene } from '../contexts/SceneContext'
 import { PLAYER_EYE_HEIGHT } from '../config/PlayerConfig'
 
 function SpawnAtCorner({
@@ -19,9 +19,8 @@ function SpawnAtCorner({
   roomLength: number
 }) {
   useEffect(() => {
-    const halfW = roomWidth / 2
     const halfL = roomLength / 2
-    camera.position.set(halfW - 2, PLAYER_EYE_HEIGHT, halfL - 2)
+    camera.position.set(7, PLAYER_EYE_HEIGHT, halfL - 2)
   }, [camera, roomWidth, roomLength])
 
   return null
@@ -36,8 +35,7 @@ function EscapeRoom1Content({
   setPowerOn: (on: boolean) => void
   wallColor: string
 }) {
-  const { roomWidth, roomLength, roomHeight } = useRoom()
-  const [shelfOpen, setShelfOpen] = useState(false)
+  const { sceneWidth: roomWidth, sceneLength: roomLength, sceneHeight: roomHeight } = useScene()
   const { camera } = useThree()
 
   const halfW = roomWidth / 2
@@ -105,23 +103,26 @@ function EscapeRoom1Content({
         </>
       )}
 
-      <Table position={[7, 0, 0]} />
+      <Table position={[7, 0, 0]} variant="metal" />
 
-      <group
-        position={[5, 0, -halfL + 1.5]}
-      >
-        <group
-          position={[-1, 0, 0]}
-          rotation={[0, shelfOpen ? Math.PI / 2 : 0, 0]}
-        >
-          <Bookshelf position={[0, 0, 0]} />
+      <group position={[10.5, 0, -halfL + 0.5]}>
+        <group position={[-1, 0, 0]}>
+          <Bookshelf position={[0, 0, 0]} variant="metal" />
         </group>
       </group>
 
+      <group position={[7.7, 0, -halfL + 0.5]}>
+        <Bookshelf position={[0, 0, 0]} variant="metal" />
+      </group>
 
-      <PhysicsBox position={[11, 1, 2]} color="#555577" />
-      <PhysicsBox position={[11.8, 1, 2.5]} color="#777799" />
-      <PhysicsBox position={[10.5, 1, 3]} color="#9999BB" />
+      <group position={[5.9, 0, -halfL + 0.5]}>
+        <Bookshelf position={[0, 0, 0]} variant="metal" />
+      </group>
+
+      {/* Physics boxes tucked close to the right wall */}
+      <PhysicsBox position={[halfW - 2, 1, 3.3]} color="#555577" />
+      <PhysicsBox position={[halfW - 1, 1, 3.8]} color="#777799" />
+      <PhysicsBox position={[halfW - 2.5, 1, 4.4]} color="#9999BB" />
 
       <Fuse
         position={[7.6, 0.75, -0.4]}
@@ -132,40 +133,41 @@ function EscapeRoom1Content({
       />
 
       <Fuse
-        position={[5, 0.9, -halfL + 1.6]}
+        position={[9.5, 1.15, -halfL + 0.6]}
         itemId="fuse-green"
         color="#4ECDC4"
         name="Green Fuse"
       />
 
       <Fuse
-        position={[11.5, 0.3, 3.6]}
+        position={[halfW - 1.6, 0.3, 4.5]}
         itemId="fuse-blue"
         color="#3498DB"
         name="Blue Fuse"
       />
 
       <BreakerBox
-        position={[halfW - 1.2, 0, -1]}
+        position={[halfW - 0.5, 0, -0.5]}
         rotation={[0, -Math.PI / 2, 0]}
         onPowerRestored={() => {
           setPowerOn(true)
         }}
       />
 
-      {powerOn && (
-        <Lever
-          position={[7.3, 1.3, -halfL + 1.5]}
-          rotation={[0, Math.PI / 2, 0]}
-          onToggle={(on) => {
-            if (on) {
-              setShelfOpen(true)
-            } else {
-              setShelfOpen(false)
-            }
-          }}
-        />
-      )}
+      <group position={[7, 0, halfL - 0.05]}>
+        <mesh position={[0, 1.5, 0]} castShadow receiveShadow>
+          <boxGeometry args={[2, 3, 0.2]} />
+          <meshStandardMaterial color="#444444" metalness={0.8} roughness={0.5} />
+        </mesh>
+        <mesh position={[0, 1.5, 0.12]} castShadow receiveShadow>
+          <boxGeometry args={[1.8, 0.15, 0.05]} />
+          <meshStandardMaterial color="#222222" metalness={0.7} roughness={0.4} />
+        </mesh>
+        <mesh position={[0, 1.0, 0.12]} castShadow receiveShadow>
+          <boxGeometry args={[1.8, 0.15, 0.05]} />
+          <meshStandardMaterial color="#222222" metalness={0.7} roughness={0.4} />
+        </mesh>
+      </group>
     </>
   )
 }
@@ -182,10 +184,10 @@ export default function EscapeRoom1() {
   const wallColor = powerOn ? wallColorAfter : wallColorBefore
 
   return (
-    <Room
-      roomWidth={28}
-      roomLength={10}
-      roomHeight={4.5}
+    <Scene
+      sceneWidth={28}
+      sceneLength={10}
+      sceneHeight={4.5}
       floorTexture={powerOn ? cobbleFloorTexture : darkFloorTexture}
       ceilingTexture={ceilingTexture}
       ambientLightIntensity={0.15}
@@ -193,7 +195,7 @@ export default function EscapeRoom1() {
       pointLightIntensity={0}
     >
       <EscapeRoom1Content powerOn={powerOn} setPowerOn={setPowerOn} wallColor={wallColor} />
-    </Room>
+    </Scene>
   )
 }
 

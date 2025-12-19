@@ -3,21 +3,24 @@ import Object from './Object'
 interface BookshelfProps {
   position: [number, number, number]
   rotation?: [number, number, number]
+  variant?: 'default' | 'metal'
 }
 
-export default function Bookshelf({ position, rotation = [0, 0, 0] }: BookshelfProps) {
+export default function Bookshelf({ position, rotation = [0, 0, 0], variant = 'default' }: BookshelfProps) {
+  const isMetal = variant === 'metal'
+  const frameColor = isMetal ? '#777777' : '#8B4513'
+  const shelfColor = isMetal ? '#5A5A5A' : '#654321'
+
   return (
     <Object position={position} rotation={rotation}>
-      {/* Main structure */}
       <mesh position={[0, 1.5, 0]} castShadow receiveShadow>
         <boxGeometry args={[1.5, 3, 0.3]} />
-        <meshStandardMaterial color="#8B4513" />
+        <meshStandardMaterial color={frameColor} metalness={isMetal ? 0.7 : 0.1} roughness={isMetal ? 0.4 : 0.8} />
       </mesh>
-      {/* Shelves */}
       {[0.5, 0, -0.5].map((y, i) => (
         <mesh key={i} position={[0, y + 1.5, 0]} castShadow receiveShadow>
           <boxGeometry args={[1.4, 0.05, 0.25]} />
-          <meshStandardMaterial color="#654321" />
+          <meshStandardMaterial color={shelfColor} metalness={isMetal ? 0.5 : 0.1} roughness={isMetal ? 0.5 : 0.8} />
         </mesh>
       ))}
       {/* Books */}

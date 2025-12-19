@@ -2,18 +2,16 @@ import HUD from './components/hud/HUD'
 import { InteractionProvider } from './systems/InteractionSystem'
 import { PlayerProvider } from './contexts/PlayerContext'
 import { CameraProvider } from './contexts/CameraContext'
-import { SceneProvider, useScene } from './scenes/SceneManager'
+import { SceneRoutingProvider } from './scenes/SceneRouting'
 import { GameStateProvider, useGameState } from './contexts/GameStateContext'
 import MainMenu from './components/menu/MainMenu'
-import Room1 from './scenes/Room1'
-import Room2 from './scenes/Room2'
-import Room3 from './scenes/Room3'
+import PuzzleGame from './scenes/PuzzleGame'
 import EscapeRoom1 from './scenes/EscapeRoom1'
+import House1 from './scenes/House1'
 import './App.css'
 
 function GameScenes() {
   const { state } = useGameState()
-  const { currentScene } = useScene()
 
   if (state === 'menu') {
     return <MainMenu />
@@ -22,9 +20,7 @@ function GameScenes() {
   if (state === 'puzzle1') {
     return (
       <div className="app">
-        {currentScene === 'room1' && <Room1 />}
-        {currentScene === 'room2' && <Room2 />}
-        {currentScene === 'room3' && <Room3 />}
+        <PuzzleGame />
         <HUD />
       </div>
     )
@@ -39,13 +35,22 @@ function GameScenes() {
     )
   }
 
+  if (state === 'house1') {
+    return (
+      <div className="app">
+        <House1 />
+        <HUD />
+      </div>
+    )
+  }
+
   return null
 }
 
 function App() {
   return (
     <GameStateProvider>
-      <SceneProvider>
+      <SceneRoutingProvider>
         <PlayerProvider>
           <CameraProvider>
             <InteractionProvider>
@@ -53,7 +58,7 @@ function App() {
             </InteractionProvider>
           </CameraProvider>
         </PlayerProvider>
-      </SceneProvider>
+      </SceneRoutingProvider>
     </GameStateProvider>
   )
 }

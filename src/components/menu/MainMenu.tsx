@@ -1,7 +1,7 @@
 import { useGameState } from '../../contexts/GameStateContext'
 
 export default function MainMenu() {
-  const { startPuzzle1, startEscape1 } = useGameState()
+  const { startPuzzle1, startEscape1, startHouse1 } = useGameState()
 
   return (
     <div
@@ -79,6 +79,22 @@ export default function MainMenu() {
             }}
           >
             Escape Room
+          </button>
+          <button
+            type="button"
+            onClick={startHouse1}
+            style={{
+              padding: '10px 32px',
+              fontSize: 16,
+              fontWeight: 600,
+              borderRadius: 999,
+              border: '1px solid #666',
+              cursor: 'pointer',
+              background: '#111',
+              color: '#FFFFFF',
+            }}
+          >
+            Explore House
           </button>
         </div>
       </div>

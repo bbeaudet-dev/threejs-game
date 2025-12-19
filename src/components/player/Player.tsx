@@ -3,8 +3,8 @@ import { useFrame, useThree } from '@react-three/fiber'
 import { useInteraction } from '../../systems/InteractionSystem'
 import { usePlayer } from '../../contexts/PlayerContext'
 import { useCamera } from '../../contexts/CameraContext'
-import { useRoom } from '../../contexts/RoomContext'
-import { useScene } from '../../scenes/SceneManager'
+import { useScene } from '../../contexts/SceneContext'
+import { useSceneRouting } from '../../scenes/SceneRouting'
 import { ROOM3_PLANETS } from '../../config/Room3Config'
 import {
   GROUND_LEVEL,
@@ -23,8 +23,8 @@ export default function Player() {
   const { setHoveredObject } = useInteraction()
   const { getEffectiveMoveSpeed, getEffectiveInteractionDistance, getEffectiveJumpHeight } = usePlayer()
   const { setYaw, rotation } = useCamera()
-  const { roomHeight: roomHeightFromContext } = useRoom()
-  const { currentScene } = useScene()
+  const { sceneHeight: roomHeightFromContext } = useScene()
+  const { currentScene } = useSceneRouting()
   
   const moveForward = useRef(false)
   const moveBackward = useRef(false)

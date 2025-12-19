@@ -1,9 +1,9 @@
 import { useInteraction } from '../../systems/InteractionSystem'
-import { useScene } from '../../scenes/SceneManager'
+import { useSceneRouting } from '../../scenes/SceneRouting'
 
 export default function DebugHUD() {
   const { hoveredObject } = useInteraction()
-  const { currentScene } = useScene()
+  const { currentScene } = useSceneRouting()
 
   const containerStyle: React.CSSProperties = {
     position: 'fixed',
