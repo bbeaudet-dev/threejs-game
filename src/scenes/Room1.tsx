@@ -1,16 +1,16 @@
-import Room from '../components/room/Room'
-import Door from '../components/walls/Door'
-import Wall from '../components/walls/Wall'
+import Scene from '../components/Scene'
+import Door from '../components/room/Door'
+import Wall from '../components/room/Wall'
 import { Table, Chair, Bookshelf, PhysicsBox, PhysicsBall, PadlockedChest } from '../components/objects'
 import Key from '../components/items/Key'
 import { showMessage } from '../components/hud/MessageDisplay'
 import { PLAYER_EYE_HEIGHT } from '../config/PlayerConfig'
 import { useWoodTexture, useCeilingTexture } from '../utils/textures'
-import { useRoom } from '../contexts/RoomContext'
+import { useScene } from '../contexts/SceneContext'
 import { useGameState } from '../contexts/GameStateContext'
 
 function Room1Content() {
-  const { roomWidth, roomLength, roomHeight } = useRoom()
+  const { sceneWidth: roomWidth, sceneLength: roomLength, sceneHeight: roomHeight } = useScene()
   const { returnToMenu } = useGameState()
 
   return (
@@ -153,14 +153,14 @@ function Room1Content() {
 
 export default function Room1() {
   return (
-    <Room
-      roomWidth={30}
-      roomLength={30}
-      roomHeight={6}
+    <Scene
+      sceneWidth={30}
+      sceneLength={30}
+      sceneHeight={6}
       floorTexture={useWoodTexture('#8B7355')}
       ceilingTexture={useCeilingTexture('#E8D5B7')}
     >
       <Room1Content />
-    </Room>
+    </Scene>
   )
 }
