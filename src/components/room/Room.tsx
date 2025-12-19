@@ -1,113 +1,108 @@
-import { Canvas } from '@react-three/fiber'
-import { PerspectiveCamera } from '@react-three/drei'
-import { Physics, usePlane } from '@react-three/cannon'
-import { Suspense, ReactNode } from 'react'
-import Player from '../player/Player'
-import PlayerSpawner from '../player/PlayerSpawner'
-import Floor from '../walls/Floor'
-import { RoomProvider } from '../../contexts/RoomContext'
-import { PLAYER_EYE_HEIGHT } from '../../config/PlayerConfig'
+import { ReactNode } from 'react'
+import Wall from './Wall'
+import Floor from './Floor'
+import Ceiling from './Ceiling'
 import * as THREE from 'three'
+import { WallOpening } from '../../types/WallTypes'
+
+interface DoorConfig {
+  side: 'front' | 'back' | 'left' | 'right'
+  position: number
+  width?: number
+  height?: number
+}
 
 interface RoomProps {
-  children: ReactNode
-  roomWidth: number
-  roomLength: number
-  roomHeight: number
-  floorTexture?: THREE.Texture
-  ceilingTexture?: THREE.Texture
-  ambientLightIntensity?: number
-  directionalLightIntensity?: number
-  pointLightIntensity?: number
-  pointLightPosition?: [number, number, number]
-  shadowCameraBounds?: {
-    left: number
-    right: number
-    top: number
-    bottom: number
-  }
-}
-
-// Physics floor collider
-function PhysicsFloor() {
-  const [ref] = usePlane(() => ({
-    rotation: [-Math.PI / 2, 0, 0],
-    position: [0, 0, 0],
-  }))
-  return <mesh ref={ref as any} visible={false} />
-}
-
-// Ceiling component
-function Ceiling({ height, width, length, texture }: { 
-  height: number
+  origin?: [number, number, number]
   width: number
   length: number
-  texture?: THREE.Texture
-}) {
-  return (
-    <mesh rotation={[Math.PI / 2, 0, 0]} position={[0, height, 0]} receiveShadow>
-      <planeGeometry args={[width, length]} />
-      <meshStandardMaterial map={texture} />
-    </mesh>
-  )
+  height: number
+  wallColor?: string
+  floorTexture?: THREE.Texture
+  ceilingTexture?: THREE.Texture
+  doors?: DoorConfig[]
+  skipWalls?: {
+    front?: boolean
+    back?: boolean
+    left?: boolean
+    right?: boolean
+  }
+  children?: ReactNode
 }
 
 export default function Room({
-  roomWidth,
-  roomLength,
-  roomHeight,
-  children,
+  origin = [0, 0, 0],
+  width,
+  length,
+  height,
+  wallColor = '#D4D4D4',
   floorTexture,
   ceilingTexture,
-  ambientLightIntensity = 0.5,
-  directionalLightIntensity = 1.2,
-  pointLightIntensity = 0.5,
-  pointLightPosition = [-10, 8, -10],
-  shadowCameraBounds = { left: -15, right: 15, top: 15, bottom: -15 },
+  doors = [],
+  skipWalls = {},
+  children,
 }: RoomProps) {
+  const [ox, oy, oz] = origin
+  const halfW = width / 2
+  const halfL = length / 2
+
+  const getOpeningsForSide = (side: string): WallOpening[] => {
+    return doors
+      .filter(door => door.side === side)
+      .map(door => ({
+        type: 'door' as const,
+        position: door.position,
+        width: door.width ?? 2,
+        height: door.height ?? 3,
+      }))
+  }
+
   return (
-    <RoomProvider properties={{ roomWidth, roomLength, roomHeight }}>
-      <Canvas
-        style={{ width: '100%', height: '100%' }}
-        gl={{ antialias: true }}
-        shadows
-      >
-        <Suspense fallback={null}>
-          <PerspectiveCamera
-            makeDefault
-            position={[0, PLAYER_EYE_HEIGHT, 0]}
-            fov={75}
-          />
+    <group position={[ox, oy, oz]}>
+      <Floor roomWidth={width} roomLength={length} texture={floorTexture} />
+      <Ceiling height={height} width={width} length={length} texture={ceilingTexture} />
+      
+      {!skipWalls.back && (
+        <Wall
+          position={[0, 0, -halfL]}
+          wallHeight={height}
+          wallLength={width}
+          textureColor={wallColor}
+          openings={getOpeningsForSide('back')}
+        />
+      )}
+      {!skipWalls.front && (
+        <Wall
+          position={[0, 0, halfL]}
+          wallHeight={height}
+          wallLength={width}
+          textureColor={wallColor}
+          openings={getOpeningsForSide('front')}
+        />
+      )}
 
-          <Physics gravity={[0, -9.81, 0]} defaultContactMaterial={{ friction: 0.4, restitution: 0.3 }}>
-            <PlayerSpawner />
-            <Player />
+      {!skipWalls.left && (
+        <Wall
+          position={[-halfW, 0, 0]}
+          rotation={[0, Math.PI / 2, 0]}
+          wallHeight={height}
+          wallLength={length}
+          textureColor={wallColor}
+          openings={getOpeningsForSide('left')}
+        />
+      )}
+      {!skipWalls.right && (
+        <Wall
+          position={[halfW, 0, 0]}
+          rotation={[0, Math.PI / 2, 0]}
+          wallHeight={height}
+          wallLength={length}
+          textureColor={wallColor}
+          openings={getOpeningsForSide('right')}
+        />
+      )}
 
-            <ambientLight intensity={ambientLightIntensity} />
-            <directionalLight
-              position={[10, 15, 10]}
-              intensity={directionalLightIntensity}
-              castShadow
-              shadow-mapSize-width={2048}
-              shadow-mapSize-height={2048}
-              shadow-camera-left={shadowCameraBounds.left}
-              shadow-camera-right={shadowCameraBounds.right}
-              shadow-camera-top={shadowCameraBounds.top}
-              shadow-camera-bottom={shadowCameraBounds.bottom}
-            />
-            <pointLight position={pointLightPosition} intensity={pointLightIntensity} />
-
-            {/* Room structure */}
-            <PhysicsFloor />
-            <Floor roomWidth={roomWidth} roomLength={roomLength} texture={floorTexture} />
-            <Ceiling height={roomHeight} width={roomWidth} length={roomLength} texture={ceilingTexture} />
-
-            {/* Room content (walls, doors, furniture, etc.) */}
-            {children}
-          </Physics>
-        </Suspense>
-      </Canvas>
-    </RoomProvider>
+      {children}
+    </group>
   )
 }
-

@@ -1,14 +1,14 @@
-import Room from '../components/room/Room'
-import Door from '../components/walls/Door'
-import Wall from '../components/walls/Wall'
+import Scene from '../components/Scene'
+import Door from '../components/room/Door'
+import Wall from '../components/room/Wall'
 import Computer from '../components/objects/Computer'
 import { Sign } from '../components/objects'
 import { PLAYER_EYE_HEIGHT } from '../config/PlayerConfig'
 import { useWoodTexture, useCeilingTexture } from '../utils/textures'
-import { useRoom } from '../contexts/RoomContext'
+import { useScene } from '../contexts/SceneContext'
 
 function Room2Content() {
-  const { roomWidth, roomLength, roomHeight } = useRoom()
+  const { sceneWidth: roomWidth, sceneLength: roomLength, sceneHeight: roomHeight } = useScene()
 
   return (
     <>
@@ -73,14 +73,14 @@ function Room2Content() {
 
 export default function Room2() {
   return (
-    <Room
-      roomWidth={10}
-      roomLength={10}
-      roomHeight={6}
+    <Scene
+      sceneWidth={10}
+      sceneLength={10}
+      sceneHeight={6}
       floorTexture={useWoodTexture('#6B8E5A')}
       ceilingTexture={useCeilingTexture('#C8D5C0')}
     >
       <Room2Content />
-    </Room>
+    </Scene>
   )
 }

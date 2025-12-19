@@ -1,15 +1,15 @@
-import Room from '../components/room/Room'
-import Door from '../components/walls/Door'
-import Wall from '../components/walls/Wall'
+import Scene from '../components/Scene'
+import Door from '../components/room/Door'
+import Wall from '../components/room/Wall'
 import SpeedBoost from '../components/items/SpeedBoost'
 import Key from '../components/items/Key'
 import { PLAYER_EYE_HEIGHT } from '../config/PlayerConfig'
 import { useWoodTexture, useCeilingTexture } from '../utils/textures'
-import { useRoom } from '../contexts/RoomContext'
+import { useScene } from '../contexts/SceneContext'
 import { ROOM3_PLANETS } from '../config/Room3Config'
 
 function Room3Content() {
-  const { roomWidth, roomLength, roomHeight } = useRoom()
+  const { sceneWidth: roomWidth, sceneLength: roomLength, sceneHeight: roomHeight } = useScene()
 
   return (
     <>
@@ -83,16 +83,16 @@ function Room3Content() {
 
 export default function Room3() {
   return (
-    <Room
-      roomWidth={70}
-      roomLength={70}
-      roomHeight={26}
+    <Scene
+      sceneWidth={70}
+      sceneLength={70}
+      sceneHeight={26}
       floorTexture={useWoodTexture('#1B263B')}
       ceilingTexture={useCeilingTexture('#415A77')}
       pointLightPosition={[0, 18, 0]}
       shadowCameraBounds={{ left: -35, right: 35, top: 35, bottom: -35 }}
     >
       <Room3Content />
-    </Room>
+    </Scene>
   )
 }
