@@ -5,6 +5,8 @@ export { default as PhysicsBox } from './PhysicsBox'
 export { default as PhysicsBall } from './PhysicsBall'
 export { default as Computer } from './Computer'
 export { default as PadlockedChest } from './PadlockedChest'
+export { default as Lever } from './Lever'
+export { default as BreakerBox } from './BreakerBox'
 export { default as Object } from './Object'
 export { default as Sign } from './Sign'
 

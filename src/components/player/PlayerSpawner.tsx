@@ -1,12 +1,12 @@
 import { useEffect } from 'react'
 import { useThree } from '@react-three/fiber'
-import { useScene } from '../../scenes/SceneManager'
+import { useSceneRouting } from '../../scenes/SceneRouting'
 import { useCamera } from '../../contexts/CameraContext'
 import * as THREE from 'three'
 
 export default function PlayerSpawner() {
   const { camera } = useThree()
-  const { pendingSpawn, clearPendingSpawn, preservedRotation } = useScene()
+  const { pendingSpawn, clearPendingSpawn, preservedRotation } = useSceneRouting()
   const { setYaw, rotation } = useCamera()
 
   useEffect(() => {

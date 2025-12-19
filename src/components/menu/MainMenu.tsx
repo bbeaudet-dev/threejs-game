@@ -1,7 +1,7 @@
 import { useGameState } from '../../contexts/GameStateContext'
 
 export default function MainMenu() {
-  const { startGame } = useGameState()
+  const { startPuzzle1, startEscape1, startHouse1 } = useGameState()
 
   return (
     <div
@@ -44,25 +44,59 @@ export default function MainMenu() {
             color: '#CCCCCC',
           }}
         >
-          A tiny 3D puzzle prototype
+          Choose a puzzle to play
         </div>
-        <button
-          type="button"
-          onClick={startGame}
-          style={{
-            padding: '10px 32px',
-            fontSize: 16,
-            fontWeight: 600,
-            borderRadius: 999,
-            border: 'none',
-            cursor: 'pointer',
-            background: '#00FFAA',
-            color: '#000',
-            boxShadow: '0 0 16px rgba(0, 255, 170, 0.5)',
-          }}
-        >
-          Start Game
-        </button>
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
+          <button
+            type="button"
+            onClick={startPuzzle1}
+            style={{
+              padding: '10px 32px',
+              fontSize: 16,
+              fontWeight: 600,
+              borderRadius: 999,
+              border: 'none',
+              cursor: 'pointer',
+              background: '#00FFAA',
+              color: '#000',
+              boxShadow: '0 0 16px rgba(0, 255, 170, 0.5)',
+            }}
+          >
+            Simple Puzzle Game
+          </button>
+          <button
+            type="button"
+            onClick={startEscape1}
+            style={{
+              padding: '10px 32px',
+              fontSize: 16,
+              fontWeight: 600,
+              borderRadius: 999,
+              border: '1px solid #666',
+              cursor: 'pointer',
+              background: '#111',
+              color: '#FFFFFF',
+            }}
+          >
+            Escape Room
+          </button>
+          <button
+            type="button"
+            onClick={startHouse1}
+            style={{
+              padding: '10px 32px',
+              fontSize: 16,
+              fontWeight: 600,
+              borderRadius: 999,
+              border: '1px solid #666',
+              cursor: 'pointer',
+              background: '#111',
+              color: '#FFFFFF',
+            }}
+          >
+            Explore House
+          </button>
+        </div>
       </div>
     </div>
   )

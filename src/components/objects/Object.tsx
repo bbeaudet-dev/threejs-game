@@ -27,6 +27,7 @@ interface ObjectProps {
   
   castShadow?: boolean
   receiveShadow?: boolean
+  disableHoverEffects?: boolean
 }
 
 // Generate unique ID for each interactive object
@@ -49,6 +50,7 @@ export default function Object({
   mass = 1,
   castShadow = true,
   receiveShadow = false,
+  disableHoverEffects = false,
 }: ObjectProps) {
   void castShadow
   void receiveShadow
@@ -161,7 +163,7 @@ export default function Object({
   }, [interactive, isRaycastHovered, handleInteract])
 
   useFrame(() => {
-    if (interactive && groupRef.current) {
+    if (interactive && !disableHoverEffects && groupRef.current) {
       const targetScale = isRaycastHovered ? 1.1 : 1.0
       const baseScale = typeof scale === 'number' ? [scale, scale, scale] : scale
       const targetScaleVec = new THREE.Vector3(

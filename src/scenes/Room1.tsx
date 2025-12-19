@@ -1,9 +1,8 @@
 import Room from '../components/room/Room'
 import Door from '../components/walls/Door'
 import Wall from '../components/walls/Wall'
-import { Table, Chair, Bookshelf, PhysicsBox, PhysicsBall } from '../components/objects'
+import { Table, Chair, Bookshelf, PhysicsBox, PhysicsBall, PadlockedChest } from '../components/objects'
 import Key from '../components/items/Key'
-import PadlockedChest from '../components/objects/PadlockedChest'
 import { showMessage } from '../components/hud/MessageDisplay'
 import { PLAYER_EYE_HEIGHT } from '../config/PlayerConfig'
 import { useWoodTexture, useCeilingTexture } from '../utils/textures'
@@ -103,13 +102,11 @@ function Room1Content() {
       {/* Key hidden behind bookshelf */}
       <Key position={[-12, 0, -12.5]} itemId="room1-key" name="Room Key" />
       
-      {/* Padlocked chest */}
       <PadlockedChest
         position={[-8, 0, -8]}
         requiredKey="room3-key"
         onUnlock={() => {
           showMessage('Congratulations! You have completed the puzzle!')
-          // Return to main menu after a short delay
           setTimeout(() => {
             returnToMenu()
           }, 3000)

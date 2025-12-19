@@ -93,3 +93,40 @@ export function useCeilingTexture(color: string = '#E8D5B7') {
   }, [color])
 }
 
+// Rough cobblestone-style floor texture using irregular blocks
+export function useCobblestoneTexture(baseColor: string = '#555555', groutColor: string = '#333333') {
+  return useMemo(() => {
+    const canvas = document.createElement('canvas')
+    canvas.width = 512
+    canvas.height = 512
+    const ctx = canvas.getContext('2d')!
+
+    // Grout background
+    ctx.fillStyle = groutColor
+    ctx.fillRect(0, 0, 512, 512)
+
+    // Stones as slightly varied rectangles
+    for (let y = 0; y < 8; y++) {
+      for (let x = 0; x < 8; x++) {
+        const w = 50 + Math.random() * 10
+        const h = 50 + Math.random() * 10
+        const px = x * 64 + 4 + Math.random() * 6
+        const py = y * 64 + 4 + Math.random() * 6
+
+        // Slight color variation per stone
+        const b = parseInt(baseColor.slice(5, 7), 16)
+        const jitter = (Math.random() * 20) | 0
+        const gray = Math.max(0, Math.min(255, b + jitter))
+        ctx.fillStyle = `rgb(${gray}, ${gray}, ${gray})`
+        ctx.fillRect(px, py, w, h)
+      }
+    }
+
+    const texture = new THREE.CanvasTexture(canvas)
+    texture.wrapS = THREE.RepeatWrapping
+    texture.wrapT = THREE.RepeatWrapping
+    texture.repeat.set(2, 2)
+    return texture
+  }, [baseColor, groutColor])
+}
+
